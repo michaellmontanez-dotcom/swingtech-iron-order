@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwingTECH Golf — Iron Order Form</title>
+<link rel="icon" type="image/png" href="https://swingtechgolf.org/wp-content/uploads/2025/02/SwingTECH_Golf_Logo_FINAL.png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #0a0a0a;
+    color: #e8e8e8;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+
+  /* ── PIN SCREEN ── */
+  .pin-screen {
+    position: fixed;
+    inset: 0;
+    background: #0a0a0a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    transition: opacity 0.4s, visibility 0.4s;
+  }
+
+  .pin-screen.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .pin-box {
+    text-align: center;
+    max-width: 320px;
+    width: 100%;
+    padding: 0 20px;
+  }
+
+  .pin-box img {
+    width: 120px;
+    height: auto;
+    margin-bottom: 28px;
+  }
+
+  .pin-box h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: #c4a469;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .pin-box p {
+    font-size: 12px;
+    color: #666;
+    letter-spacing: 1px;
+    margin-bottom: 28px;
+  }
+
+  .pin-inputs {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .pin-inputs input {
+    width: 52px;
+    height: 60px;
+    background: #151515;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: #c4a469;
+    caret-color: #c4a469;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .pin-inputs input:focus {
+    outline: none;
+    border-color: #c4a469;
+    box-shadow: 0 0 0 3px rgba(196, 164, 105, 0.15);
+  }
+
+  .pin-inputs input.shake {
+    animation: shake 0.4s ease;
+    border-color: #e74c3c;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+  }
+
+  .pin-error {
+    font-size: 12px;
+    color: #e74c3c;
+    height: 18px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── MAIN FORM ── */
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .header {
+    text-align: center;
+    padding: 40px 0 30px;
+    border-bottom: 1px solid rgba(196, 164, 105, 0.3);
+    margin-bottom: 40px;
+  }
+
+  .header .divider {
+    width: 60px;
+    height: 1px;
+    background: #c4a469;
+    margin: 16px auto;
+  }
+
+  .header .form-title {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #ccc;
+  }
+
+  .section {
+    margin-bottom: 32px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #c4a469;
+    margin-bottom: 18px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(196, 164, 105, 0.15);
+  }
+
+  .field-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+
+  .field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .field label {
+    font-size: 11px;
+    font-weight: 500;
+    color: #999;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+  }
+
+  .field input, .field select, .field textarea {
+    background: #151515;
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    padding: 11px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: #e8e8e8;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+  }
+
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: none;
+    border-color: #c4a469;
+    box-shadow: 0 0 0 3px rgba(196, 164, 105, 0.1);
+  }
+
+  .field input::placeholder, .field textarea::placeholder {
+    color: #444;
+  }
+
+  .field select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+    cursor: pointer;
+  }
+
+  .field select option {
+    background: #1a1a1a;
+    color: #e8e8e8;
+  }
+
+  .field textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  .toggle-group {
+    display: flex;
+    gap: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #2a2a2a;
+  }
+
+  .toggle-group input[type="radio"] { display: none; }
+
+  .toggle-group label.toggle-btn {
+    flex: 1;
+    text-align: center;
+    padding: 11px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: #666;
+    background: #151515;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 0;
+  }
+
+  .toggle-group input[type="radio"]:checked + label.toggle-btn {
+    background: #c4a469;
+    color: #0a0a0a;
+  }
+
+  .actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 36px;
+    padding-top: 28px;
+    border-top: 1px solid rgba(196, 164, 105, 0.15);
+  }
+
+  .btn {
+    flex: 1;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: #c4a469;
+    color: #0a0a0a;
+  }
+
+  .btn-primary:hover {
+    background: #d4b679;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(196, 164, 105, 0.25);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: #c4a469;
+    border: 1px solid rgba(196, 164, 105, 0.3);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(196, 164, 105, 0.08);
+    transform: translateY(-1px);
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #c4a469;
+    color: #0a0a0a;
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .footer {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(196, 164, 105, 0.1);
+  }
+
+  .footer p {
+    font-size: 11px;
+    color: #555;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .email-bar {
+    display: flex;
+    gap: 12px;
+    align-items: end;
+    margin-bottom: 32px;
+    padding: 20px;
+    background: #111;
+    border-radius: 8px;
+    border: 1px solid #1e1e1e;
+  }
+
+  .email-bar .field { flex: 1; }
+
+  .email-bar .btn {
+    flex: none;
+    white-space: nowrap;
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 600px) {
+    .field-row { flex-direction: column; gap: 10px; }
+    .email-bar { flex-direction: column; }
+    .pin-inputs input { width: 48px; height: 54px; font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── PIN SCREEN ── -->
+<div class="pin-screen" id="pinScreen">
+  <div class="pin-box">
+    <img src="https://swingtechgolf.org/wp-content/uploads/2025/02/SwingTECH_Golf_Logo_FINAL.png" alt="SwingTECH Golf" />
+    <h2>Iron Order Form</h2>
+    <p>Enter PIN to continue</p>
+    <div class="pin-inputs" id="pinInputs">
+      <input type="password" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" />
+      <input type="password" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" />
+      <input type="password" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" />
+      <input type="password" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" />
+    </div>
+    <div class="pin-error" id="pinError"></div>
+  </div>
+</div>
+
+<!-- ── MAIN FORM ── -->
+<div class="container">
+  <div class="header">
+    <img src="https://swingtechgolf.org/wp-content/uploads/2025/02/SwingTECH_Golf_Logo_FINAL.png"
+         alt="SwingTECH Golf"
+         style="width:160px;height:auto;display:block;margin:0 auto 16px;" />
+    <div class="divider"></div>
+    <div class="form-title">Iron Order Form</div>
+  </div>
+
+  <div class="email-bar">
+    <div class="field">
+      <label>Rep Email Address</label>
+      <input type="email" id="repEmail" placeholder="rep@manufacturer.com">
+    </div>
+    <div class="field" style="flex: 0.6;">
+      <label>Subject Line</label>
+      <input type="text" id="emailSubject" placeholder="Iron Order — Customer Name">
+    </div>
+  </div>
+
+  <form id="orderForm">
+
+    <div class="section">
+      <div class="section-label">Order Information</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Date</label>
+          <input type="date" id="orderDate">
+        </div>
+        <div class="field">
+          <label>Order / Reference #</label>
+          <input type="text" id="orderRef" placeholder="e.g. 2026-0401">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Customer Name</label>
+          <input type="text" id="customerName" placeholder="Full name">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Club Specifications</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Hand</label>
+          <div class="toggle-group">
+            <input type="radio" name="hand" id="handRH" value="RH" checked>
+            <label class="toggle-btn" for="handRH">RH</label>
+            <input type="radio" name="hand" id="handLH" value="LH">
+            <label class="toggle-btn" for="handLH">LH</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Iron Model</label>
+          <input type="text" id="ironModel" placeholder="e.g. Titleist T200">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Set Makeup</label>
+          <input type="text" id="setMakeup" placeholder="e.g. 5-PW, 4-GW">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Shaft</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Model</label>
+          <input type="text" id="shaftModel" placeholder="e.g. True Temper AMT Black">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Flex</label>
+          <input type="text" id="shaftFlex" placeholder="e.g. S300, 6.0, R">
+        </div>
+        <div class="field">
+          <label>Weight</label>
+          <input type="text" id="shaftWeight" placeholder="e.g. 105g (if applicable)">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Grip</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Model</label>
+          <input type="text" id="gripModel" placeholder="e.g. Golf Pride Z-Grip">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Size</label>
+          <input type="text" id="gripSize" placeholder="e.g. STD, MID, +1/16">
+        </div>
+        <div class="field">
+          <label>Extra Wraps</label>
+          <input type="text" id="gripWraps" placeholder="e.g. 2">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Build Specs</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Length</label>
+          <input type="text" id="buildLength" placeholder="e.g. STD, +0.5, -0.25">
+        </div>
+        <div class="field">
+          <label>Swing Weight</label>
+          <input type="text" id="swingWeight" placeholder="e.g. D2">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Lie Angle</label>
+          <input type="text" id="lieAngle" placeholder="e.g. STD, +2 upright, -1 flat">
+        </div>
+        <div class="field">
+          <label>Loft</label>
+          <input type="text" id="loft" placeholder="e.g. STD, +1, -1">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Additional Notes</div>
+      <div class="field-row">
+        <div class="field">
+          <textarea id="notes" placeholder="Special requests, rush order, etc."></textarea>
+        </div>
+      </div>
+    </div>
+
+  </form>
+
+  <div class="actions">
+    <button class="btn btn-secondary" onclick="copyToClipboard()">Copy to Clipboard</button>
+    <button class="btn btn-primary" onclick="openEmail()">Open in Email</button>
+  </div>
+
+  <div class="actions" style="border-top: none; margin-top: 8px; padding-top: 0;">
+    <button class="btn btn-secondary" onclick="clearForm()">Clear Form</button>
+  </div>
+
+  <div class="footer">
+    <p>SwingTECH Golf &mdash; Bluffton, SC</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── PIN LOGIC ──
+  const PIN_HASH = 'fa3cfb3f1bb823aa9501f88f1f95f732ee6fef2c3a48be7f1d38037b216a549f';
+
+  async function hashPin(pin) {
+    const data = new TextEncoder().encode(pin);
+    const buf = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  const pinInputs = document.querySelectorAll('#pinInputs input');
+  const pinError = document.getElementById('pinError');
+
+  pinInputs.forEach((input, i) => {
+    input.addEventListener('input', (e) => {
+      const val = e.target.value.replace(/\D/g, '');
+      e.target.value = val;
+      if (val && i < pinInputs.length - 1) {
+        pinInputs[i + 1].focus();
+      }
+      if (i === pinInputs.length - 1 && val) {
+        checkPin();
+      }
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !e.target.value && i > 0) {
+        pinInputs[i - 1].focus();
+        pinInputs[i - 1].value = '';
+      }
+    });
+
+    input.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 4);
+      paste.split('').forEach((ch, j) => {
+        if (pinInputs[j]) pinInputs[j].value = ch;
+      });
+      if (paste.length === 4) checkPin();
+    });
+  });
+
+  async function checkPin() {
+    const entered = Array.from(pinInputs).map(i => i.value).join('');
+    const hash = await hashPin(entered);
+    if (hash === PIN_HASH) {
+      document.getElementById('pinScreen').classList.add('hidden');
+      document.getElementById('orderDate').valueAsDate = new Date();
+    } else {
+      pinError.textContent = 'Incorrect PIN';
+      pinInputs.forEach(i => {
+        i.classList.add('shake');
+        setTimeout(() => { i.classList.remove('shake'); i.value = ''; }, 400);
+      });
+      setTimeout(() => { pinInputs[0].focus(); pinError.textContent = ''; }, 600);
+    }
+  }
+
+  // Auto-focus first PIN input
+  pinInputs[0].focus();
+
+  // ── FORM LOGIC ──
+  function getHand() {
+    return document.querySelector('input[name="hand"]:checked').value;
+  }
+
+  function buildEmailBody() {
+    const d = document.getElementById('orderDate').value;
+    const date = d ? new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : '';
+
+    let body = '';
+    body += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+    body += '         SWINGTECH GOLF  |  IRON ORDER\n';
+    body += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
+
+    body += '  ORDER INFO\n';
+    body += '  ──────────────────────────────────────\n';
+    body += '  Date:              ' + date + '\n';
+    body += '  Customer:          ' + document.getElementById('customerName').value + '\n';
+    body += '  Reference #:       ' + document.getElementById('orderRef').value + '\n\n';
+
+    body += '  CLUB SPECS\n';
+    body += '  ──────────────────────────────────────\n';
+    body += '  Hand:              ' + getHand() + '\n';
+    body += '  Iron Model:        ' + document.getElementById('ironModel').value + '\n';
+    body += '  Set Makeup:        ' + document.getElementById('setMakeup').value + '\n\n';
+
+    body += '  SHAFT\n';
+    body += '  ──────────────────────────────────────\n';
+    body += '  Model:             ' + document.getElementById('shaftModel').value + '\n';
+    body += '  Flex:              ' + document.getElementById('shaftFlex').value + '\n';
+    if (document.getElementById('shaftWeight').value) {
+      body += '  Weight:            ' + document.getElementById('shaftWeight').value + '\n';
+    }
+    body += '\n';
+
+    body += '  GRIP\n';
+    body += '  ──────────────────────────────────────\n';
+    body += '  Model:             ' + document.getElementById('gripModel').value + '\n';
+    body += '  Size:              ' + document.getElementById('gripSize').value + '\n';
+    if (document.getElementById('gripWraps').value) {
+      body += '  Extra Wraps:       ' + document.getElementById('gripWraps').value + '\n';
+    }
+    body += '\n';
+
+    body += '  BUILD SPECS\n';
+    body += '  ──────────────────────────────────────\n';
+    body += '  Length:            ' + document.getElementById('buildLength').value + '\n';
+    body += '  Lie Angle:         ' + document.getElementById('lieAngle').value + '\n';
+    body += '  Loft:              ' + document.getElementById('loft').value + '\n';
+    body += '  Swing Weight:      ' + document.getElementById('swingWeight').value + '\n\n';
+
+    const notes = document.getElementById('notes').value;
+    if (notes) {
+      body += '  NOTES\n';
+      body += '  ──────────────────────────────────────\n';
+      body += '  ' + notes.replace(/\n/g, '\n  ') + '\n\n';
+    }
+
+    body += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+    body += '       SwingTECH Golf  •  Bluffton, SC\n';
+    body += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+
+    return body;
+  }
+
+  function copyToClipboard() {
+    const body = buildEmailBody();
+    navigator.clipboard.writeText(body).then(() => {
+      showToast('Copied to clipboard');
+    });
+  }
+
+  function openEmail() {
+    const to = document.getElementById('repEmail').value;
+    const subject = document.getElementById('emailSubject').value || 'Iron Order — ' + document.getElementById('customerName').value;
+    const body = buildEmailBody();
+    const mailto = 'mailto:' + encodeURIComponent(to) + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    window.location.href = mailto;
+    showToast('Opening email client...');
+  }
+
+  function clearForm() {
+    document.getElementById('orderForm').reset();
+    document.getElementById('repEmail').value = '';
+    document.getElementById('emailSubject').value = '';
+    document.getElementById('orderDate').valueAsDate = new Date();
+    document.getElementById('handRH').checked = true;
+    showToast('Form cleared');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+</script>
+
+</body>
+</html>
